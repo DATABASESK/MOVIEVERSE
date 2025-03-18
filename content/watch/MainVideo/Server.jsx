@@ -26,7 +26,7 @@ const Server = () => {
 
   const TVVideoPlayers = {
 
-     animie:  `https://2anime.xyz/embed/{title}-episode-{number}`,
+     animie:  `https://2anime.xyz/embed/${MovieInfo}-episode-${episode}`,
     onepiece:  animie:  `https://2anime.xyz/embed/one-piece-episode-1`,
     Server0: `https://vidapi.xyz/embed/tv/${MovieId}&s=${season}&e=${episode}`,
     Server1: `${process.env.NEXT_PUBLIC_TV_VIDSRC_PRO}${MovieId}/${season}/${episode}`,
