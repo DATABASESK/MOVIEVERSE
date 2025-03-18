@@ -8,6 +8,7 @@ const Server = () => {
   const MovieVideoPlayers = {
     //Server1: `${process.env.NEXT_PUBLIC_PIKASHOW}${MovieInfo?.imdb_id}?d=pikachu.app&sinku`,
     //Server2: `${process.env.NEXT_PUBLIC_VIDLINK}${MovieId}`,
+   
     server0: `https://www.2embed.cc/embed/${MovieId} `,
     server1: `https://vidapi.xyz/embed/movie/${MovieId}`,
     Server3: `${process.env.NEXT_PUBLIC_VIDSRCDEV}${MovieId}`,
@@ -24,6 +25,9 @@ const Server = () => {
   };
 
   const TVVideoPlayers = {
+
+     animie:  `https://2anime.xyz/embed/{title}-episode-{number}`,
+    onepiece:  animie:  `https://2anime.xyz/embed/one-piece-episode-1`,
     Server0: `https://vidapi.xyz/embed/tv/${MovieId}&s=${season}&e=${episode}`,
     Server1: `${process.env.NEXT_PUBLIC_TV_VIDSRC_PRO}${MovieId}/${season}/${episode}`,
     Server2: `${process.env.NEXT_PUBLIC_TV_VIDSRC_IN}${MovieId}/${season}/${episode}`,
