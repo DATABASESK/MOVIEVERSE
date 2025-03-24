@@ -62,6 +62,7 @@ const Home = async () => {
         <Trending data={trendingdata} />
         <TopNetflixSeries data={topNetflixSeries} />
         <RecentTamil data={recentTamilMovies} />
+        <TopKidsTVSeries data={topKidsTVSeries} />
         <MarvelMovies data={marvelMovies} />
         <WatchHistory />
         <FantasyMovies data={fantasyMovies} />
@@ -71,7 +72,7 @@ const Home = async () => {
         <Tamil data={tamilMovies} />
         <Horror data={horrorMovies} />
         <Romantic data={romanticMovies} />
-        <TopKidsTVSeries data={topKidsTVSeries} /> {/* ✅ Added kids TV series here */}
+        
       </div>
 
       <div className="fixed w-[138.33px] h-[82.25px] left-[1%] top-[2%] bg-[#92b7fc8f] blur-[200px]"></div>
