@@ -9,8 +9,8 @@ const Server = () => {
     //Server1: `${process.env.NEXT_PUBLIC_PIKASHOW}${MovieInfo?.imdb_id}?d=pikachu.app&sinku`,
     //Server2: `${process.env.NEXT_PUBLIC_VIDLINK}${MovieId}`,
    
-    server0: `https://www.2embed.cc/embed/${MovieId} `,
-    server1: `https://vidapi.xyz/embed/movie/${MovieId}`,
+   // server0: `https://www.2embed.cc/embed/${MovieId} `,
+   // server1: `https://vidapi.xyz/embed/movie/${MovieId}`,
     Server3: `${process.env.NEXT_PUBLIC_VIDSRCDEV}${MovieId}`,
     Server4: `${process.env.NEXT_PUBLIC_VIDSRC_CC}${MovieId}`,
     Server5: `${process.env.NEXT_PUBLIC_VIDSRC_IN}${MovieId}`,
