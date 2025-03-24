@@ -12,6 +12,7 @@ import RecentTamil from "@/content/Home/RecentTamil";
 import TopNetflixSeries from "@/content/Home/TopNetflixSeries";
 import FantasyMovies from "@/content/Home/FantasyMovies";
 import MarvelMovies from "@/content/Home/MarvelMovies";
+import TopKidsTVSeries from "@/content/Home/TopKidsTVSeries";
 
 // ✅ Fetch functions from different files
 import { 
@@ -26,6 +27,7 @@ import {
 } from "@/lib/MoviesFunctions";
 
 import { getTopNetflixSeriesGlobal } from "@/lib/TVfunctions"; // ✅ Corrected import
+import { getTopKidsTVSeriesGlobal } from "@/lib/TVfunctions";
 
 const Home = async () => {
   const [
@@ -47,7 +49,8 @@ const Home = async () => {
     getRecentTamilMovies(),
     getTopNetflixSeriesGlobal(), // ✅ Now correctly fetched from TVfunctions.js
     getFantasyMovies(),
-    getMcuMovies()
+    getMcuMovies(),
+    getTopKidsTVSeriesGlobal()
   ]);
 
   return (
@@ -67,6 +70,7 @@ const Home = async () => {
         <Tamil data={tamilMovies} />
         <Horror data={horrorMovies} />
         <Romantic data={romanticMovies} />
+        <TopKidsTVSeries data={topKidsTVSeries} />
       </div>
 
       <div className="fixed w-[138.33px] h-[82.25px] left-[1%] top-[2%] bg-[#92b7fc8f] blur-[200px]"></div>
