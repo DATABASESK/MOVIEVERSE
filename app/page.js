@@ -26,7 +26,7 @@ import {
   getMcuMovies 
 } from "@/lib/MoviesFunctions";
 
-import { getTopNetflixSeriesGlobal } from "@/lib/TVfunctions"; // ✅ Corrected import
+import { getTopNetflixSeriesGlobal } from "@/lib/TVfunctions";
 import { getTopKidsTVSeriesGlobal } from "@/lib/TVfunctions";
 
 const Home = async () => {
@@ -39,7 +39,8 @@ const Home = async () => {
     recentTamilMovies,
     topNetflixSeries, 
     fantasyMovies, 
-    marvelMovies 
+    marvelMovies,
+    topKidsTVSeries // ✅ Added this variable for kids TV shows
   ] = await Promise.all([
     getTrendingMovies(),
     getTopRatedMovies(),
@@ -47,10 +48,10 @@ const Home = async () => {
     getHorrorMovies(),
     getRomanticMovies(),
     getRecentTamilMovies(),
-    getTopNetflixSeriesGlobal(), // ✅ Now correctly fetched from TVfunctions.js
+    getTopNetflixSeriesGlobal(), // ✅ Correctly fetching Netflix series
     getFantasyMovies(),
     getMcuMovies(),
-    getTopKidsTVSeriesGlobal()
+    getTopKidsTVSeriesGlobal() // ✅ Fetching kids TV shows
   ]);
 
   return (
@@ -70,7 +71,7 @@ const Home = async () => {
         <Tamil data={tamilMovies} />
         <Horror data={horrorMovies} />
         <Romantic data={romanticMovies} />
-        <TopKidsTVSeries data={topKidsTVSeries} />
+        <TopKidsTVSeries data={topKidsTVSeries} /> {/* ✅ Added kids TV series here */}
       </div>
 
       <div className="fixed w-[138.33px] h-[82.25px] left-[1%] top-[2%] bg-[#92b7fc8f] blur-[200px]"></div>
