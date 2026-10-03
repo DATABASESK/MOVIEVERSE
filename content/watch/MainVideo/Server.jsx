@@ -9,6 +9,7 @@ const Server = () => {
     //Server1: `${process.env.NEXT_PUBLIC_PIKASHOW}${MovieInfo?.imdb_id}?d=pikachu.app&sinku`,
     //Server2: `${process.env.NEXT_PUBLIC_VIDLINK}${MovieId}`,
    
+    test1: `https://nxsha.space/embed/movie/${MovieId} `,
     server0: `https://www.2embed.cc/embed/${MovieId} `,
     server1: `https://vidapi.xyz/embed/movie/${MovieId}`,
     Server3: `${process.env.NEXT_PUBLIC_VIDSRCDEV}${MovieId}`,
@@ -28,6 +29,7 @@ const Server = () => {
 
     // animie:  `https://2anime.xyz/embed/${MovieInfo}-episode-${episode}`,
   //  onepiece: `https://2anime.xyz/embed/one-piece-episode-1`,
+    test1: `https://nxsha.space/embed/tv/${MovieId}&s=${season}&e=${episode}`,
     Server0: `https://vidapi.xyz/embed/tv/${MovieId}&s=${season}&e=${episode}`,
     Server1: `${process.env.NEXT_PUBLIC_TV_VIDSRC_PRO}${MovieId}/${season}/${episode}`,
     Server2: `${process.env.NEXT_PUBLIC_TV_VIDSRC_IN}${MovieId}/${season}/${episode}`,
