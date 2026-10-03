@@ -10,7 +10,7 @@ const Server = () => {
     //Server2: `${process.env.NEXT_PUBLIC_VIDLINK}${MovieId}`,
    
     test1: `https://nxsha.space/embed/movie/${MovieId} `,
-    server0: `https://www.2embed.cc/embed/${MovieId} `,
+    /*server0: `https://www.2embed.cc/embed/${MovieId} `,
     server1: `https://vidapi.xyz/embed/movie/${MovieId}`,
     Server3: `${process.env.NEXT_PUBLIC_VIDSRCDEV}${MovieId}`,
     Server4: `${process.env.NEXT_PUBLIC_VIDSRC_CC}${MovieId}`,
@@ -22,7 +22,7 @@ const Server = () => {
     Server10: `${process.env.NEXT_PUBLIC_RGSHOWS}${MovieId}`,
     Server11: `${process.env.NEXT_PUBLIC_MULTIEMBED}${MovieId}&tmdb=1`,
     Serverx: `https://ply4.com/movie/?id=${MovieId}`,
-    Serverxx: `https://vidsrc.cc/v2/embed/movie/${MovieId}?autoPlay=true`,
+    Serverxx: `https://vidsrc.cc/v2/embed/movie/${MovieId}?autoPlay=true`,*/
   };
 
   const TVVideoPlayers = {
@@ -30,7 +30,7 @@ const Server = () => {
     // animie:  `https://2anime.xyz/embed/${MovieInfo}-episode-${episode}`,
   //  onepiece: `https://2anime.xyz/embed/one-piece-episode-1`,
     test1: `https://nxsha.space/embed/tv/${MovieId}&s=${season}&e=${episode}`,
-    Server0: `https://vidapi.xyz/embed/tv/${MovieId}&s=${season}&e=${episode}`,
+   /* Server0: `https://vidapi.xyz/embed/tv/${MovieId}&s=${season}&e=${episode}`,
     Server1: `${process.env.NEXT_PUBLIC_TV_VIDSRC_PRO}${MovieId}/${season}/${episode}`,
     Server2: `${process.env.NEXT_PUBLIC_TV_VIDSRC_IN}${MovieId}/${season}/${episode}`,
     Server3: `${process.env.NEXT_PUBLIC_TV_VIDSRC_ME}${MovieId}/${season}/${episode}`,
@@ -40,7 +40,7 @@ const Server = () => {
     Server7: `${process.env.NEXT_PUBLIC_TV_VIDLINK}${MovieId}/${season}/${episode}`,
     Server8: `${process.env.NEXT_PUBLIC_TV_RGSHOWS}${MovieId}&s=${season}&e=${episode}`,
     Server9: `${process.env.NEXT_PUBLIC_TV_SK}${MovieInfo?.imdb_id}?d=pikachu.app&?sinku&noseasons=${season}&noepisodes=${episode}`,
-    serverx:`https://vidsrc.cc/v2/embed/tv/${MovieId}?autoPlay=true`,
+    serverx:`https://vidsrc.cc/v2/embed/tv/${MovieId}?autoPlay=true`,*/
   };
 
   const MovievideoPlayerEntry = Object.entries(MovieVideoPlayers);
