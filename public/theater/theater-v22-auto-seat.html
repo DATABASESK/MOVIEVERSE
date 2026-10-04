@@ -10,7 +10,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030405;col
 #webgl,#css3d{position:fixed;inset:0}
 #webgl{z-index:2;pointer-events:none}
 #css3d{z-index:1;pointer-events:none}
-#movieFrame{width:1200px;height:675px;border:0;background:#000;display:block;box-shadow:0 0 80px rgba(0,0,0,.9);pointer-events:auto}
+#css3d.playMode{z-index:50;pointer-events:auto}
+#css3d.lookMode{z-index:1;pointer-events:none}
+#movieFrame{width:1200px;height:675px;border:0;background:#000;display:block;box-shadow:0 0 80px rgba(0,0,0,.9)}
 #top{display:none!important;position:fixed;z-index:20;left:0;right:0;top:0;height:70px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(5,6,8,.9);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:space-between;padding:0 42px}
 .brand{font-size:17px;font-weight:800;letter-spacing:.11em;display:flex;align-items:center;gap:10px}
 .brandMark{font-size:22px;line-height:1;transform:skew(-10deg)}
@@ -257,7 +259,7 @@ document.body.appendChild(webgl.domElement);
 const css=new CSS3DRenderer();
 css.setSize(innerWidth,innerHeight);
 css.domElement.id='css3d';
-css.domElement.style.pointerEvents='auto';
+css.domElement.style.pointerEvents='none';
 document.body.appendChild(css.domElement);
 const cssScene=new THREE.Scene();
 
@@ -612,9 +614,17 @@ function nearestSeat(){
 }
 function setMovieInteraction(enabled){
   movieInteraction=enabled;
+
+  // The WebGL canvas is visual-only. The CSS3D renderer contains the real
+  // cross-origin movie iframe, so PLAY mode must put that renderer above
+  // WebGL in the hit-test stack. In LOOK mode it goes behind the camera
+  // interaction overlay again.
+  webgl.domElement.style.pointerEvents='none';
   movieFrame.style.pointerEvents=enabled?'auto':'none';
-  // CSS3DRenderer's root must also accept pointer events or the iframe cannot receive clicks.
+  css.domElement.classList.toggle('playMode',enabled);
+  css.domElement.classList.toggle('lookMode',!enabled);
   css.domElement.style.pointerEvents=enabled?'auto':'none';
+
   mobileControls.classList.toggle('cameraMode', seated && !enabled);
   lookOverlay.classList.toggle('active', seated && !enabled);
   desktopLook.classList.toggle('active', seated && !enabled);
