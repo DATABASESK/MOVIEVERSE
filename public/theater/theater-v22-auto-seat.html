@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKYTMOVIES — The Cinema</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030405;color:#f4f4f4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#webgl,#css3d{position:fixed;inset:0}
+#webgl{z-index:1}
+#css3d{z-index:2;pointer-events:none}
+#movieFrame{width:1200px;height:675px;border:0;background:#000;display:block;box-shadow:0 0 80px rgba(0,0,0,.9)}
+#top{position:fixed;z-index:20;left:0;right:0;top:0;height:70px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(5,6,8,.9);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:space-between;padding:0 42px}
+.brand{font-size:17px;font-weight:800;letter-spacing:.11em;display:flex;align-items:center;gap:10px}
+.brandMark{font-size:22px;line-height:1;transform:skew(-10deg)}
+.tabs{display:flex;gap:4px;border:1px solid #292c31;border-radius:24px;padding:3px;background:#0a0b0d}
+.tab{padding:10px 17px;border-radius:19px;font-size:14px;color:#c8cbd0}
+.tab.active{background:#f2f3f4;color:#111;box-shadow:0 0 20px rgba(255,255,255,.12)}
+.site{padding:10px 16px;border:1px solid #30343a;border-radius:22px;font-size:13px;color:#ddd}
+#crumb{position:fixed;z-index:20;left:28px;top:91px;color:#777e86;font-size:12px;letter-spacing:.1em}
+#crumb b{color:#eee;letter-spacing:0}
+#seatPanel{position:fixed;z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);width:min(500px,calc(100vw - 28px));background:rgba(8,9,11,.97);border:1px solid #30343a;border-radius:18px;padding:22px;box-shadow:0 30px 100px rgba(0,0,0,.72)}
+#seatPanel h2{margin:0 0 7px;font-size:21px}
+.sub{margin:0 0 17px;color:#8b9199;font-size:12px;line-height:1.5}
+.rows{display:grid;gap:7px}.row{display:grid;grid-template-columns:22px repeat(10,1fr);gap:5px;align-items:center}
+.row label{font-size:10px;color:#777e86;text-align:center}.seat{height:29px;border:1px solid #343940;background:#17191c;color:#d9dadd;border-radius:6px;font-size:10px;cursor:pointer}
+.seat:hover{border-color:#aaa}.seat.selected{background:#f0f1f2;color:#111;border-color:#f0f1f2}.seat.occupied{opacity:.2;cursor:not-allowed}
+.legend{display:flex;gap:15px;margin:13px 0;color:#747b83;font-size:10px}.dot{display:inline-block;width:8px;height:8px;border-radius:3px;background:#17191c;border:1px solid #343940;margin-right:5px}.dot.sel{background:#eee;border-color:#eee}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:120px;padding:11px;border:1px solid #343940;background:#17191c;color:#ddd;border-radius:9px;cursor:pointer}.actions .primary{background:#f0f1f2;color:#111;border-color:#f0f1f2}
+#hud{position:fixed;z-index:25;left:28px;bottom:26px;background:rgba(7,8,10,.72);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px 14px;font-size:11px;color:#9ba0a7;backdrop-filter:blur(10px);display:none}
+#hud b{color:#eee}
+#controls{position:fixed;z-index:25;right:28px;bottom:25px;display:none;gap:8px}
+.controlBtn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(7,8,10,.76);color:#eee;cursor:pointer;font-size:15px;backdrop-filter:blur(10px)}
+#hint{position:fixed;z-index:25;left:50%;bottom:24px;transform:translateX(-50%);display:none;background:rgba(7,8,10,.78);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 14px;color:#aeb3b9;font-size:11px;backdrop-filter:blur(10px)}
+#hint kbd{border:1px solid #555;border-radius:4px;padding:2px 5px;color:#eee;margin:0 2px}
+#loading{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:#030405;color:#aeb4bb;font-size:13px;letter-spacing:.12em}
+.hidden{display:none!important}
+#crosshair{position:fixed;z-index:24;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;transform:translate(-50%,-50%);display:none}
+#interact{position:fixed;z-index:25;left:50%;top:55%;transform:translateX(-50%);padding:9px 13px;border-radius:9px;background:rgba(8,9,11,.82);border:1px solid rgba(255,255,255,.15);font-size:11px;color:#eee;display:none}
+
+#lookOverlay{position:fixed;z-index:35;inset:70px 0 0;pointer-events:none;touch-action:none;cursor:grab}
+#lookOverlay.active{pointer-events:auto}
+#lookOverlay.active:active{cursor:grabbing}
+#desktopLook{position:fixed;z-index:45;right:82px;top:80px;width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.78);color:#fff;font-size:11px;font-weight:700;display:none;cursor:pointer;backdrop-filter:blur(8px)}
+#desktopLook.active{background:#f0f1f2;color:#111}
+#desktopControlToggle{position:fixed;z-index:45;right:22px;top:80px;width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.78);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);display:none}
+#desktopControlToggle.hiddenUi{opacity:.55}
+#mobileControls{position:fixed;z-index:40;inset:0;pointer-events:none;display:none}
+#joystick{position:absolute;left:18px;bottom:70px;width:142px;height:142px;border-radius:50%;
+  background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 0 34px rgba(0,0,0,.38),0 8px 30px rgba(0,0,0,.18);
+  pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px;border-radius:50%;
+  background:rgba(245,245,245,.9);box-shadow:0 7px 26px rgba(0,0,0,.38);
+  border:1px solid rgba(255,255,255,.9);transform:translate3d(0,0,0);touch-action:none;
+  will-change:transform}
+#touchLook{position:absolute;inset:70px 0 70px 0;width:100%;pointer-events:none;touch-action:none}
+#mobileControls.cameraMode #touchLook{pointer-events:auto}
+#lookModeToggle{position:absolute;right:76px;top:82px;width:48px;height:48px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.78);color:#fff;
+  font-size:11px;font-weight:700;pointer-events:auto;display:none;touch-action:none;
+  backdrop-filter:blur(8px)}
+#mobileChangeSeat{position:absolute;right:76px;top:82px;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.78);color:#fff;font-size:18px;pointer-events:auto;display:none;touch-action:none;backdrop-filter:blur(8px)}
+#mobileControlToggle{position:absolute;right:18px;top:82px;width:48px;height:48px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.78);color:#fff;
+  font-size:20px;pointer-events:auto;display:none;touch-action:none;backdrop-filter:blur(8px)}
+#mobileSit{position:absolute;right:24px;bottom:92px;width:58px;height:58px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(7,8,10,.76);color:#fff;
+  font-weight:700;pointer-events:auto;display:none;touch-action:none}
+@media (max-width:700px){
+  #mobileControls{display:block}
+  #hint{display:none!important}
+  #hud{left:15px;bottom:18px;font-size:10px}
+  #controls{right:15px;bottom:18px}
+  #controls .controlBtn{width:38px;height:38px}
+  #joystick{left:18px;bottom:72px;width:116px;height:116px}
+  #stick{width:54px;height:54px;margin:-27px}
+  #mobileSit{right:18px;bottom:72px}
+}
+
+
+#seatedLookHint{
+  position:fixed;z-index:41;left:50%;top:72px;transform:translateX(-50%);
+  padding:8px 12px;border-radius:18px;background:rgba(7,8,10,.68);
+  border:1px solid rgba(255,255,255,.14);color:#c9cdd2;font-size:11px;
+  pointer-events:none;opacity:0;transition:opacity .25s;
+}
+#seatedLookHint.show{opacity:1}
+#seatPanel.transitioning{pointer-events:none;opacity:.65}
+#mobileControls.seatedMode #joystick{opacity:0;pointer-events:none}
+#mobileControls.seatedMode #mobileSit{display:block!important}
+@media(max-width:700px){
+  #seatedLookHint{top:272px;font-size:10px}
+}
+
+</style>
+</head>
+<body>
+<div id="loading">LOADING CINEMA EXPERIENCE…</div>
+<header id="top">
+  <div class="brand"><span class="brandMark">◢</span>SKYTMOVIES</div>
+  <div class="site">← Site</div>
+</header>
+
+<div id="crumb">SKYTMOVIES · <b id="seatName">Choose your seat</b></div>
+
+<iframe id="movieFrame"
+  src=""
+  title="Movie player"
+  allowfullscreen
+  loading="eager"
+  frameborder="0"
+  sandbox="allow-scripts allow-same-origin"
+  allow="fullscreen; autoplay; encrypted-media; picture-in-picture; accelerometer; gyroscope"></iframe>
+
+<div id="seatPanel">
+  <h2 id="seatPanelTitle">Choose your seat</h2>
+  <p class="sub">Choose a seat and either <b>Enter & Explore</b> or <b>Sit now</b>. While watching, click another seat and your avatar will walk there and sit automatically.</p>
+  <div id="seatRows" class="rows"></div>
+  <div class="legend"><span><i class="dot"></i>Available</span><span><i class="dot sel"></i>Selected</span></div>
+  <div class="actions">
+    <button id="enter" class="primary" disabled>Enter & Explore</button>
+    <button id="sitNow" disabled>Sit now</button>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+
+<div id="hud">Seat <b id="seatHud">—</b> · <span id="modeHud">Exploring</span></div>
+<div id="controls">
+  <button class="controlBtn" id="resetCam" title="Reset view">↻</button>
+  <button class="controlBtn" id="changeSeat" title="Change seat">⌖</button>
+  <button class="controlBtn" id="exit" title="Exit">×</button>
+</div>
+<div id="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move · <kbd>Drag</kbd> Look · <kbd>Wheel</kbd> Zoom · <kbd>E</kbd> Sit</div>
+<div id="crosshair"></div>
+<div id="interact">Press <b>E</b> to sit</div>
+
+<button id="desktopLook" aria-label="Toggle camera look">LOOK</button>
+<button id="desktopControlToggle" aria-label="Hide or show theater controls">⋯</button>
+<div id="lookOverlay" aria-hidden="true"></div>
+<div id="seatedLookHint">Drag or swipe to look around</div>
+<div id="mobileControls">
+  <button id="lookModeToggle" aria-label="Toggle movie controls and camera look">LOOK</button>
+  <button id="mobileControlToggle" aria-label="Show or hide controls">⋯</button>
+  <button id="mobileChangeSeat" aria-label="Change seat">⌖</button>
+  <div id="touchLook"></div>
+  <div id="joystick"><div id="stick"></div></div>
+  <button id="mobileSit" aria-label="Sit or stand">E</button>
+</div>
+
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {CSS3DRenderer,CSS3DObject} from 'three/addons/renderers/CSS3DRenderer.js';
+
+const movieFrame=document.getElementById('movieFrame');
+
+/* Read the current movie/server URL sent by Next.js. */
+const theaterParams=new URLSearchParams(window.location.search);
+const movieUrl=theaterParams.get('movieUrl');
+
+if(movieUrl){
+  try{
+    movieFrame.src=movieUrl;
+    console.log('Theater movie URL loaded:',movieUrl);
+  }catch(err){
+    console.error('Unable to set theater movie URL:',err);
+  }
+}else{
+  console.warn('No movieUrl was supplied to the theater.');
+}
+
+movieFrame.setAttribute(
+  'allow',
+  'autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; gyroscope'
+);
+
+function requestMoviePlay(){
+  try{
+    movieFrame.contentWindow?.postMessage(
+      {type:'play',action:'play',autoplay:true},
+      '*'
+    );
+  }catch(err){
+    console.debug('Embedded movie play request failed:',err);
+  }
+}
+
+movieFrame.addEventListener('load',()=>{
+  setTimeout(requestMoviePlay,500);
+});
+const loading=document.getElementById('loading');
+const seatPanel=document.getElementById('seatPanel');
+const seatRows=document.getElementById('seatRows');
+const enter=document.getElementById('enter');
+const sitNow=document.getElementById('sitNow');
+const resetBtn=document.getElementById('reset');
+const resetCam=document.getElementById('resetCam');
+const changeSeat=document.getElementById('changeSeat');
+const exit=document.getElementById('exit');
+const seatName=document.getElementById('seatName');
+const seatHud=document.getElementById('seatHud');
+const modeHud=document.getElementById('modeHud');
+const hud=document.getElementById('hud');
+const controls=document.getElementById('controls');
+const hint=document.getElementById('hint');
+const crosshair=document.getElementById('crosshair');
+const interact=document.getElementById('interact');
+const joystick=document.getElementById('joystick');
+const stick=document.getElementById('stick');
+const touchLook=document.getElementById('touchLook');
+const mobileSit=document.getElementById('mobileSit');
+const mobileControlToggle=document.getElementById('mobileControlToggle');
+const mobileChangeSeat=document.getElementById('mobileChangeSeat');
+const lookModeToggle=document.getElementById('lookModeToggle');
+const mobileControls=document.getElementById('mobileControls');
+const desktopLook=document.getElementById('desktopLook');
+const desktopControlToggle=document.getElementById('desktopControlToggle');
+const lookOverlay=document.getElementById('lookOverlay');
+const seatedLookHint=document.getElementById('seatedLookHint');
+let seatedYaw=0;
+let seatedPitch=0;
+let seatedControlsVisible=true;
+let theaterUiVisible=true;
+let movieInteraction=true;
+let joystickVelocityX=0;
+let joystickVelocityY=0;
+const seatedTouch={active:false,id:null,x:0,y:0};
+
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x030405);
+scene.fog=new THREE.FogExp2(0x030405,.018);
+
+const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.05,100);
+const webgl=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+webgl.setPixelRatio(Math.min(devicePixelRatio,1.7));
+webgl.setSize(innerWidth,innerHeight);
+webgl.shadowMap.enabled=true;
+webgl.shadowMap.type=THREE.PCFSoftShadowMap;
+webgl.outputColorSpace=THREE.SRGBColorSpace;
+webgl.toneMapping=THREE.ACESFilmicToneMapping;
+webgl.toneMappingExposure=1.12;
+webgl.domElement.id='webgl';
+document.body.appendChild(webgl.domElement);
+
+const css=new CSS3DRenderer();
+css.setSize(innerWidth,innerHeight);
+css.domElement.id='css3d';
+css.domElement.style.pointerEvents='none';
+document.body.appendChild(css.domElement);
+const cssScene=new THREE.Scene();
+
+const loader=new GLTFLoader();
+const clock=new THREE.Clock();
+
+const SCREEN_Z=-6.9;
+const SCREEN_Y=4.05;
+const SCREEN_W=9.6;
+const SCREEN_H=SCREEN_W*9/16;
+
+scene.add(new THREE.HemisphereLight(0xb7c3d0,0x111216,1.35));
+const roomFill=new THREE.AmbientLight(0xffffff,0.42);
+scene.add(roomFill);
+const key=new THREE.DirectionalLight(0xffe7d0,1.55);
+key.position.set(0,8,4); key.castShadow=true; key.shadow.mapSize.set(2048,2048); scene.add(key);
+const screenGlow=new THREE.PointLight(0xffb35c,5.0,14);
+screenGlow.position.set(0,3,-5.8); scene.add(screenGlow);
+const warmL=new THREE.PointLight(0xff8a3d,1.8,12); warmL.position.set(-6,2,0); scene.add(warmL);
+const warmR=warmL.clone(); warmR.position.x=6; scene.add(warmR);
+const ceilingLightL=new THREE.PointLight(0xffd6a0,2.2,15);
+ceilingLightL.position.set(-4.8,6.5,0); scene.add(ceilingLightL);
+const ceilingLightR=ceilingLightL.clone();
+ceilingLightR.position.x=4.8; scene.add(ceilingLightR);
+const aisleLight=new THREE.PointLight(0xffb66b,1.6,12);
+aisleLight.position.set(0,2.5,1.8); scene.add(aisleLight);
+
+
+function mat(c,r=.75,m=.0){return new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m})}
+function box(w,h,d,x,y,z,c,r=.75){
+  const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c,r));
+  o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o;
+}
+function cyl(rad,depth,x,y,z,c){
+  const o=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,depth,24),mat(c,.7));
+  o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o;
+}
+
+/* Room: deep black walls, stepped floor, acoustic ribs, amber light strips. */
+box(17,.3,18,0,0,-.2,0x08090b);
+box(17,.25,18,0,7.8,-.2,0x050607);
+box(.2,7.8,18,-8.5,3.9,-.2,0x090a0c);
+box(.2,7.8,18,8.5,3.9,-.2,0x090a0c);
+box(17,.3,.22,0,6.9,8.55,0x17191c);
+for(let r=0;r<6;r++){
+  const z=.8+r*1.2, y=.15+r*.27;
+  box(15,.3,1.22,0,y,z,0x111316,.95);
+  box(.05,.035,1.0,-6.9,y+.17,z,0xb27a32,.5);
+  box(.05,.035,1.0,6.9,y+.17,z,0xb27a32,.5);
+}
+box(1.1,.08,7.7,0,.36,4.0,0x191b1f);
+for(const side of [-1,1]){
+  for(let z=-5.7;z<7;z+=2.25){
+    box(.18,4.8,.18,side*8.12,2.45,z,0x292b2e);
+    box(.07,2.05,.08,side*7.95,2.35,z,0xffbd64,.4);
+    const practical=new THREE.PointLight(0xffc36b,1.25,4.2);
+    practical.position.set(side*7.55,2.55,z); scene.add(practical);
+    box(.11,1.2,.12,side*7.9,3.9,z,0x332d27);
+  }
+}
+/* Front stage */
+box(12.7,.45,1.15,0,.23,-6.55,0x17191b);
+box(11.9,.18,.45,0,.52,-6.05,0x0d0f11);
+
+/* Planters and simple plants, like the reference. */
+function planter(x,z){
+  const p=cyl(.28,.55,x,.3,z,0x14171a);
+  for(let i=0;i<7;i++){
+    const stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.7,8),mat(0x1b321e,.9));
+    stem.position.set(x+(Math.random()-.5)*.2,.72,z+(Math.random()-.5)*.2);
+    stem.rotation.z=(Math.random()-.5)*.35;scene.add(stem);
+    const leaf=new THREE.Mesh(new THREE.SphereGeometry(.12,.12,8),mat(0x26442a,.9));
+    leaf.scale.y=1.8;leaf.position.copy(stem.position).add(new THREE.Vector3((Math.random()-.5)*.18,.25,(Math.random()-.5)*.18));scene.add(leaf);
+  }
+}
+planter(-5.9,-5.65); planter(5.9,-5.65);
+
+/* Screen bezel */
+box(SCREEN_W+.60,SCREEN_H+.60,.18,0,SCREEN_Y,SCREEN_Z,0x16181b,.65,.1);
+box(SCREEN_W+.20,SCREEN_H+.20,.08,0,SCREEN_Y,SCREEN_Z+.13,0x050607,.4);
+const screenSurface=box(SCREEN_W,SCREEN_H,.035,0,SCREEN_Y,SCREEN_Z+.19,0x030303,.45);
+
+/* Movie iframe sits exactly on the screen surface. */
+const movieObject=new CSS3DObject(movieFrame);
+movieObject.position.set(0,SCREEN_Y,SCREEN_Z+.235);
+movieObject.scale.set(SCREEN_W/1200,SCREEN_W/1200,SCREEN_W/1200);
+cssScene.add(movieObject);
+
+/* Real CC0 cinema seat model. The asset is documented as +Y up / +Z forward,
+   so a PI yaw makes every chair face the screen at negative Z. */
+let seatTemplate=null;
+const seats=[];
+const seatMap=new Map();
+const occupied=new Set(['A3','B7','C2','D8','E4','F6']);
+const rows=['A','B','C','D','E','F'];
+const SEATS_PER_ROW=8;
+
+function cloneSeat(r,c){
+  const id=rows[r]+(c+1);
+  const s=seatTemplate.clone(true);
+  s.rotation.y=Math.PI;
+  s.scale.setScalar(1.02);
+  const x=(c-(SEATS_PER_ROW-1)/2)*1.08;
+  const z=1.10+r*1.38;
+  const y=.43+r*.27;
+  s.position.set(x,y,z);
+  s.userData.seatId=id;s.userData.row=r;s.userData.col=c;s.userData.baseY=y;
+  s.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+  scene.add(s);seats.push(s);seatMap.set(id,s);
+}
+
+function addPicker(){
+  rows.forEach((letter,r)=>{
+    const row=document.createElement('div');row.className='row';
+    const lab=document.createElement('label');lab.textContent=letter;row.appendChild(lab);
+    for(let c=1;c<=SEATS_PER_ROW;c++){
+      const id=letter+c,b=document.createElement('button');
+      b.className='seat';b.textContent=c;b.dataset.seatId=id;
+      if(occupied.has(id)){b.classList.add('occupied');b.disabled=true}
+      b.onclick=()=>{
+        document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+        selectedSeat=id;
+        seatName.textContent='Seat '+id;
+        seatHud.textContent=id;
+        enter.disabled=false;
+        sitNow.disabled=false;
+        highlightSeat(id);
+
+        // While seated, changing the seat is immediate: the camera, viewing
+        // distance and seat position all update as soon as a new seat is picked.
+        if(seated && seatPanel.dataset.mode==='change'){
+          startSeatTransition(id);
+        }
+      };
+      row.appendChild(b);
+    }
+    seatRows.appendChild(row);
+  });
+}
+addPicker();
+
+let selectedSeat=null;
+let selectedMesh=null;
+function highlightSeat(id){
+  if(selectedMesh?.userData.ring) scene.remove(selectedMesh.userData.ring);
+  const s=seatMap.get(id); if(!s)return;
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.42,.48,40),new THREE.MeshBasicMaterial({color:0xffc56d,transparent:true,opacity:.95,side:THREE.DoubleSide}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(s.position.x,.76+s.userData.row*.27,s.position.z);
+  ring.userData.noFog=true;scene.add(ring);
+  selectedMesh=s;s.userData.ring=ring;
+}
+
+/* Low-poly player avatar: intentionally simple so it reads like the reference game avatar. */
+const player=new THREE.Group();scene.add(player);
+function avatarPart(geo,c,x,y,z){
+  const m=new THREE.Mesh(geo,mat(c,.8));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;player.add(m);return m;
+}
+const body=avatarPart(new THREE.BoxGeometry(.52,.82,.30),0xeee9dc,0,1.15,0);
+const head=avatarPart(new THREE.BoxGeometry(.42,.42,.42),0xc98b5d,0,1.78,0);
+const hair=avatarPart(new THREE.BoxGeometry(.45,.16,.44),0x3a251c,0,1.99,-.01);
+const legL=avatarPart(new THREE.BoxGeometry(.20,.68,.23),0x35433b,-.14,.43,0);
+const legR=avatarPart(new THREE.BoxGeometry(.20,.68,.23),0x35433b,.14,.43,0);
+const armL=avatarPart(new THREE.BoxGeometry(.17,.62,.18),0xeee9dc,-.37,1.18,0);
+const armR=avatarPart(new THREE.BoxGeometry(.17,.62,.18),0xeee9dc,.37,1.18,0);
+const shoeL=avatarPart(new THREE.BoxGeometry(.23,.12,.38),0x181b1c,-.14,.08,-.04);
+const shoeR=avatarPart(new THREE.BoxGeometry(.23,.12,.38),0x181b1c,.14,.08,-.04);
+player.visible=false;
+
+let playerYaw=0,camPitch=.22,camDistance=4.6;
+const keys={};let dragging=false,lastX=0,lastY=0;
+let seated=false;
+let seatTransition=null;
+
+function spawnPlayer(id){
+  const s=seatMap.get(id);
+
+  // Place the avatar just behind the selected chair and orient it toward
+  // the screen. The camera then sits behind the avatar and looks over it.
+  player.position.set(s.position.x,0,s.position.z+0.72);
+  playerYaw=0;
+  camPitch=.16;
+  camDistance=3.7;
+  seated=false;
+  player.visible=true;
+  body.position.y=1.15; head.position.y=1.78; hair.position.y=1.99;
+  armL.position.y=1.18; armR.position.y=1.18;
+  legL.position.y=.43; legR.position.y=.43;
+  shoeL.position.y=.08; shoeR.position.y=.08;
+
+  const forward=forwardVector();
+  camera.position.copy(
+    player.position.clone()
+      .addScaledVector(forward,-camDistance)
+      .add(new THREE.Vector3(0,1.7,0))
+  );
+  camera.lookAt(
+    player.position.clone()
+      .addScaledVector(forward,4.8)
+      .add(new THREE.Vector3(0,1.45,0))
+  );
+}
+function forwardVector(){
+  // Yaw 0 is the cinema-facing direction: straight toward the screen (-Z).
+  return new THREE.Vector3(Math.sin(playerYaw),0,-Math.cos(playerYaw)).normalize();
+}
+function updateCamera(){
+  const forward=forwardVector();
+
+  if(seated){
+    // Seated 360° POV. The camera stays at the selected seat and rotates
+    // around its own position from a horizontal swipe. Vertical swipe gives
+    // a limited up/down look without allowing the view to flip.
+    const s=seatMap.get(selectedSeat);
+    if(!s)return;
+    const base=getSeatedCameraPosition(s);
+    const yawRadius=.16;
+    const lookDistance=5.0;
+    const lookDir=new THREE.Vector3(
+      Math.sin(seatedYaw),
+      Math.sin(seatedPitch),
+      -Math.cos(seatedYaw)
+    ).normalize();
+
+    camera.position.set(
+      base.x + Math.sin(seatedYaw)*yawRadius,
+      base.y,
+      base.z + Math.cos(seatedYaw)*yawRadius
+    );
+
+    const target=camera.position.clone().addScaledVector(lookDir,lookDistance);
+    target.y+=.05;
+    camera.lookAt(target);
+    return;
+  }
+
+  const aimDistance=4.8;
+  const aimPoint=player.position.clone()
+    .addScaledVector(forward,aimDistance);
+  aimPoint.y=1.45;
+
+  const horizontal=camDistance*Math.cos(camPitch);
+  const behind=forward.clone().multiplyScalar(-horizontal);
+  const desired=player.position.clone().add(behind);
+  desired.y=player.position.y+1.45+camDistance*Math.sin(camPitch);
+
+  camera.position.lerp(desired,.16);
+  camera.lookAt(aimPoint);
+}
+function movePlayer(dt){
+  if(seated)return;
+  let x=0,z=0;
+  if(keys.KeyW)z-=1;if(keys.KeyS)z+=1;if(keys.KeyA)x-=1;if(keys.KeyD)x+=1;
+  if(!x&&!z)return;
+  const f=forwardVector(), right=new THREE.Vector3(-f.z,0,f.x);
+  const dir=new THREE.Vector3().addScaledVector(f,-z).addScaledVector(right,x).normalize();
+  const speed=2.9;
+  player.position.addScaledVector(dir,speed*dt);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-6.7,6.7);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-4.8,7.2);
+  player.rotation.y=playerYaw;
+}
+function nearestSeat(){
+  let best=null,bd=999;
+  for(const s of seats){
+    const dx=player.position.x-s.position.x;
+    const dz=player.position.z-s.position.z;
+    const d=Math.hypot(dx,dz);
+    if(d<bd){bd=d;best=s}
+  }
+  return bd<1.15?best:null;
+}
+function setMovieInteraction(enabled){
+  movieInteraction=enabled;
+  movieFrame.style.pointerEvents=enabled?'auto':'none';
+  mobileControls.classList.toggle('cameraMode', seated && !enabled);
+  lookOverlay.classList.toggle('active', seated && !enabled);
+  desktopLook.classList.toggle('active', seated && !enabled);
+  lookModeToggle.textContent=enabled?'LOOK':'PLAY';
+  lookModeToggle.title=enabled?'Switch to camera look':'Switch to movie controls';
+  desktopLook.textContent=enabled?'LOOK':'PLAY';
+  desktopLook.title=enabled?'Enable camera look':'Enable movie controls';
+}
+
+lookModeToggle.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(!seated)return;
+  setMovieInteraction(!movieInteraction);
+});
+desktopLook.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(!seated)return;
+  setMovieInteraction(!movieInteraction);
+});
+
+function setSeatedMode(active){
+  mobileControls.classList.toggle('seatedMode',active);
+  if(active){
+    setStick(0,0);
+    joystickVelocityX=0;
+    joystickVelocityY=0;
+  }
+}
+
+function setTheaterUiVisible(visible){
+  theaterUiVisible=visible;
+  hud.style.display=visible && seated?'block':(seated?'none':hud.style.display);
+  hint.style.display=visible && !seated?'block':'none';
+  seatedLookHint.style.display=visible?'':'none';
+  desktopLook.style.display=seated && visible?'block':'none';
+  desktopControlToggle.style.display=seated?'block':'none';
+  desktopControlToggle.textContent=visible?'⋯':'＋';
+  desktopControlToggle.classList.toggle('hiddenUi',!visible);
+  if(!visible){
+    controls.style.display='none';
+    mobileChangeSeat.style.display='none';
+    lookModeToggle.style.display='none';
+  }else if(seated){
+    controls.style.display='none';
+    mobileChangeSeat.style.display='block';
+    lookModeToggle.style.display='block';
+  }
+}
+
+function setSeatedControls(visible){
+  seatedControlsVisible=visible;
+  controls.style.display=visible?'flex':'none';
+  mobileControlToggle.style.display=seated?'block':'none';
+  mobileControlToggle.textContent=visible?'×':'⋯';
+}
+
+mobileChangeSeat.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  openSeatChanger();
+});
+
+mobileControlToggle.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(!seated)return;
+  setSeatedControls(!seatedControlsVisible);
+});
+
+desktopControlToggle.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(!seated)return;
+  setTheaterUiVisible(!theaterUiVisible);
+});
+
+function applySeatChange(id){
+  const s=seatMap.get(id);
+  if(!s)return;
+
+  selectedSeat=id;
+  seatName.textContent='Seat '+id;
+  seatHud.textContent=id;
+  highlightSeat(id);
+
+  // Keep the user seated and move to a safe, unobstructed cinema POV.
+  // The camera is deliberately placed in front of the chair back so the
+  // imported seat model can never swallow/black-out the view.
+  seated=true;
+  seatedYaw=0;
+  seatedPitch=0;
+  player.visible=false;
+  player.position.set(s.position.x,0.18,s.position.z+0.72);
+  camera.position.copy(getSeatedCameraPosition(s));
+  camera.lookAt(getSeatedLookTarget(s));
+  modeHud.textContent='Sitting';
+  mobileSit.textContent='↑';
+  mobileSit.setAttribute('aria-label','Stand up');
+  setSeatedMode(true);
+  setMovieInteraction(true);
+  lookModeToggle.style.display='block';
+  desktopLook.style.display='block';
+  controls.style.display='none';
+  mobileControlToggle.style.display='block';
+  mobileChangeSeat.style.display='block';
+  mobileControlToggle.textContent='⋯';
+  theaterUiVisible=true;
+  desktopControlToggle.style.display='block';
+  desktopControlToggle.textContent='⋯';
+  seatPanel.classList.add('hidden');
+  seatPanel.dataset.mode='';
+  resetBtn.textContent='Reset';
+  enter.classList.remove('hidden');
+  sitNow.classList.remove('hidden');
+  seatedLookHint.classList.add('show');
+  setTimeout(()=>seatedLookHint.classList.remove('show'),2200);
+}
+
+function getSeatedCameraPosition(s){
+  const row=s.userData.row||0;
+  // Each row is progressively higher and farther back. Keep the camera
+  // roughly 1.15m in front of the seat's center, never inside the chair.
+  const rowN=Math.min(row,5);
+  // Put the camera at natural eye height and keep it at the seat position.
+  // The movie is rendered as a CSS3D iframe, so it cannot depth-test against
+  // WebGL chairs; keeping the camera behind the seat and lifting the screen
+  // prevents the iframe from visually drawing across foreground seat backs.
+  const y=1.78 + rowN*0.055;
+  const zOffset=0.10;
+  return new THREE.Vector3(s.position.x,y,s.position.z+zOffset);
+}
+
+function getSeatedLookTarget(s){
+  const row=s.userData.row||0;
+  const rowN=Math.min(row,5);
+  // Aim at the center of the movie screen, with a tiny row-based elevation
+  // so rear rows naturally look slightly downward.
+  return new THREE.Vector3(0,SCREEN_Y+rowN*0.01,SCREEN_Z);
+}
+
+function startSeatTransition(id){
+  const target=seatMap.get(id);
+  if(!target || occupied.has(id))return;
+
+  selectedSeat=id;
+  seatName.textContent='Seat '+id;
+  seatHud.textContent=id;
+  highlightSeat(id);
+
+  // Leave the seated POV and let the avatar visibly walk to the new seat.
+  // The route uses the center aisle first, then approaches the target from behind.
+  const currentX=player.position.x;
+  const currentZ=player.position.z;
+  const aisleX=0;
+  const approachZ=target.position.z+0.72;
+  const waypoints=[
+    new THREE.Vector3(aisleX,0,currentZ),
+    new THREE.Vector3(aisleX,0,approachZ),
+    new THREE.Vector3(target.position.x,0,approachZ)
+  ];
+
+  player.visible=true;
+  seated=false;
+  setSeatedMode(false);
+  setMovieInteraction(true);
+  mobileSit.style.display='none';
+  interact.style.display='none';
+  lookModeToggle.style.display='none';
+  desktopLook.style.display='none';
+  controls.style.display='none';
+  mobileChangeSeat.style.display='none';
+  mobileControlToggle.style.display='none';
+  desktopControlToggle.style.display='none';
+  seatedLookHint.classList.remove('show');
+  seatPanel.classList.add('hidden');
+  seatPanel.classList.remove('transitioning');
+  seatPanel.dataset.mode='';
+
+  seatTransition={
+    id,
+    waypoints,
+    index:0,
+    speed:3.1,
+    target,
+    finalZ:approachZ
+  };
+}
+
+function updateSeatTransition(dt){
+  if(!seatTransition)return false;
+  const t=seatTransition;
+  const wp=t.waypoints[t.index];
+  const pos=player.position;
+  const delta=new THREE.Vector3().subVectors(wp,pos);
+  delta.y=0;
+  const dist=delta.length();
+
+  if(dist<0.06){
+    if(t.index<t.waypoints.length-1){
+      t.index++;
+      return true;
+    }
+    // Arrived behind the chosen seat: finish by sitting automatically.
+    player.position.set(t.target.position.x,0.18,t.finalZ);
+    player.visible=false;
+    selectedSeat=t.id;
+    seatName.textContent='Seat '+t.id;
+    seatHud.textContent=t.id;
+    highlightSeat(t.id);
+    seated=true;
+    seatedYaw=0;
+    seatedPitch=0;
+    modeHud.textContent='Sitting';
+    mobileSit.textContent='↑';
+    mobileSit.setAttribute('aria-label','Stand up');
+    setSeatedMode(true);
+    setMovieInteraction(true);
+    setTimeout(()=>{
+      lookModeToggle.style.display=seated?'block':'none';
+      desktopLook.style.display=seated?'block':'none';
+      mobileChangeSeat.style.display=seated?'block':'none';
+      mobileControlToggle.style.display=seated?'block':'none';
+      desktopControlToggle.style.display=seated?'block':'none';
+      desktopControlToggle.textContent='⋯';
+      seatedLookHint.classList.add('show');
+      setTimeout(()=>seatedLookHint.classList.remove('show'),1800);
+    },80);
+    seatTransition=null;
+    return false;
+  }
+
+  const dir=delta.normalize();
+  player.position.addScaledVector(dir,Math.min(t.speed*dt,dist));
+  playerYaw=Math.atan2(dir.x,-dir.z);
+  player.rotation.y=playerYaw;
+  return true;
+}
+
+function openSeatChanger(){
+  if(!seated)return;
+  seatPanel.dataset.mode='change';
+  enter.classList.add('hidden');
+  sitNow.classList.add('hidden');
+  resetBtn.textContent='Close';
+  const title=document.getElementById('seatPanelTitle'); if(title) title.textContent='Change your seat';
+  seatPanel.classList.remove('hidden');
+  document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
+  const currentBtn=document.querySelector(`.seat[data-seat-id="${selectedSeat}"]`);
+  if(currentBtn)currentBtn.classList.add('selected');
+}
+
+function toggleSit(){
+  if(!selectedSeat)return;
+  const s=seatMap.get(selectedSeat);
+  if(!s)return;
+
+  seated=!seated;
+  modeHud.textContent=seated?'Sitting':'Exploring';
+  mobileSit.textContent=seated?'↑':'E';
+  mobileSit.setAttribute('aria-label',seated?'Stand up':'Sit down');
+  seatedControlsVisible=false;
+  setSeatedMode(seated);
+  setMovieInteraction(true);
+  lookModeToggle.style.display=seated?'block':'none';
+  desktopLook.style.display=seated?'block':'none';
+  controls.style.display=seated?'none':'flex';
+  mobileControlToggle.style.display=seated?'block':'none';
+  mobileChangeSeat.style.display=seated?'block':'none';
+  mobileControlToggle.textContent='⋯';
+  seatedYaw=0;
+  seatedPitch=0;
+
+  if(seated){
+    seatedLookHint.classList.add('show');
+    setTimeout(()=>seatedLookHint.classList.remove('show'),2200);
+    player.position.set(s.position.x,0.18,s.position.z+0.72);
+    playerYaw=0;
+    player.visible=false;
+    camera.position.copy(getSeatedCameraPosition(s));
+    camera.lookAt(getSeatedLookTarget(s));
+  }else{
+    seatedLookHint.classList.remove('show');
+    player.visible=true;
+    player.position.set(s.position.x,0,s.position.z+1.05);
+    playerYaw=0;
+    camDistance=3.7;
+    camPitch=.16;
+  }
+}
+
+addEventListener('keydown',e=>{
+  if(e.code==='KeyE' && !seatPanel.classList.contains('hidden'))return;
+
+  if(e.code==='KeyE'){
+    // E always toggles the selected seat, including while the avatar is hidden
+    // in seated camera mode.
+    if(seated){
+      e.preventDefault();
+      toggleSit();
+      return;
+    }
+
+    if(player.visible){
+      e.preventDefault();
+      toggleSit();
+      return;
+    }
+  }
+
+  keys[e.code]=true;
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+/* Mobile controls:
+   - Left virtual joystick controls WASD-style movement.
+   - Right side swipe rotates the third-person camera.
+   - E button sits/stands when close to a seat. */
+const joystickState={active:false,id:null,x:0,y:0};
+const lookState={active:false,id:null,x:0,y:0};
+
+function setStick(dx,dy){
+  const max=52;
+  const len=Math.hypot(dx,dy);
+  if(len>max){dx=dx/len*max;dy=dy/len*max}
+
+  const nx=dx/max, ny=dy/max;
+  const dead=.08;
+  const applyDead=v=>{
+    const a=Math.abs(v);
+    if(a<dead)return 0;
+    const n=(a-dead)/(1-dead);
+    return Math.sign(v)*n*n;
+  };
+
+  joystickState.x=applyDead(nx);
+  joystickState.y=applyDead(ny);
+
+  stick.style.transform=`translate3d(${dx}px,${dy}px,0)`;
+}
+function joystickPoint(e){
+  const r=joystick.getBoundingClientRect();
+  return {x:e.clientX-(r.left+r.width/2),y:e.clientY-(r.top+r.height/2)};
+}
+const seatedDrag={active:false,x:0,y:0};
+joystick.addEventListener('pointerdown',e=>{
+  if(!player.visible)return;
+  e.preventDefault(); joystick.setPointerCapture(e.pointerId);
+  joystickState.active=true; joystickState.id=e.pointerId;
+  const p=joystickPoint(e); setStick(p.x,p.y);
+});
+lookOverlay.addEventListener('pointerdown',e=>{
+  if(!seated || movieInteraction)return;
+  e.preventDefault();
+  lookOverlay.setPointerCapture(e.pointerId);
+  seatedDrag.active=true; seatedDrag.x=e.clientX; seatedDrag.y=e.clientY;
+});
+lookOverlay.addEventListener('pointermove',e=>{
+  if(!seatedDrag.active)return;
+  e.preventDefault();
+  const dx=e.clientX-seatedDrag.x, dy=e.clientY-seatedDrag.y;
+  seatedDrag.x=e.clientX; seatedDrag.y=e.clientY;
+  seatedYaw-=dx*.0048;
+  seatedPitch=THREE.MathUtils.clamp(seatedPitch-dy*.0032,-.42,.42);
+});
+function endSeatedDrag(){seatedDrag.active=false;}
+lookOverlay.addEventListener('pointerup',endSeatedDrag);
+lookOverlay.addEventListener('pointercancel',endSeatedDrag);
+
+addEventListener('pointerdown',e=>{
+  if(!player.visible)return;
+  e.preventDefault();joystick.setPointerCapture(e.pointerId);
+  joystickState.active=true;joystickState.id=e.pointerId;
+  const p=joystickPoint(e);setStick(p.x,p.y);
+});
+joystick.addEventListener('pointermove',e=>{
+  if(!joystickState.active||e.pointerId!==joystickState.id)return;
+  e.preventDefault();const p=joystickPoint(e);setStick(p.x,p.y);
+});
+function releaseJoystick(e){
+  if(e.pointerId!==joystickState.id)return;
+  joystickState.active=false;joystickState.id=null;setStick(0,0);
+}
+joystick.addEventListener('pointerup',releaseJoystick);
+joystick.addEventListener('pointercancel',releaseJoystick);
+
+touchLook.addEventListener('pointerdown',e=>{
+  if(!player.visible && !seated)return;
+  if(seated && movieInteraction)return;
+  if(seated)e.preventDefault();
+  e.preventDefault();touchLook.setPointerCapture(e.pointerId);
+
+  if(seated){
+    seatedTouch.active=true;
+    seatedTouch.id=e.pointerId;
+    seatedTouch.x=e.clientX;
+    seatedTouch.y=e.clientY;
+    seatedLookHint.classList.remove('show');
+    return;
+  }
+
+  lookState.active=true;lookState.id=e.pointerId;lookState.x=e.clientX;lookState.y=e.clientY;
+});
+touchLook.addEventListener('pointermove',e=>{
+  if(seated){
+    if(!seatedTouch.active||e.pointerId!==seatedTouch.id)return;
+    e.preventDefault();
+
+    const dx=e.clientX-seatedTouch.x;
+    const dy=e.clientY-seatedTouch.y;
+    seatedTouch.x=e.clientX;
+    seatedTouch.y=e.clientY;
+
+    // Smooth 360° seated look. Lower sensitivity prevents over-rotation.
+    seatedYaw-=dx*.0048;
+    seatedPitch=THREE.MathUtils.clamp(seatedPitch-dy*.0032,-.42,.42);
+    return;
+  }
+
+  if(!lookState.active||e.pointerId!==lookState.id)return;
+  e.preventDefault();
+  const dx=e.clientX-lookState.x,dy=e.clientY-lookState.y;
+  lookState.x=e.clientX;lookState.y=e.clientY;
+  playerYaw-=dx*.006;
+  camPitch=THREE.MathUtils.clamp(camPitch-dy*.0045,-.18,.72);
+  player.rotation.y=playerYaw;
+});
+function releaseLook(e){
+  if(seated && e.pointerId===seatedTouch.id){
+    seatedTouch.active=false;
+    seatedTouch.id=null;
+    return;
+  }
+  if(e.pointerId===lookState.id){lookState.active=false;lookState.id=null}
+}
+touchLook.addEventListener('pointerup',releaseLook);
+touchLook.addEventListener('pointercancel',releaseLook);
+touchLook.addEventListener('pointerleave',e=>{
+  if(seated && seatedTouch.active)releaseLook(e);
+});
+
+mobileSit.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(seated){
+    toggleSit();
+    return;
+  }
+  if(player.visible && !e.repeat)toggleSit();
+});
+
+function moveMobile(dt){
+  if(!player.visible||seated)return;
+
+  const mx=joystickState.x;
+  const my=joystickState.y;
+
+  // Smooth acceleration and braking make the joystick much easier to control.
+  const targetX=mx*2.8;
+  const targetY=my*2.8;
+  const response=1-Math.exp(-dt*10);
+  joystickVelocityX += (targetX-joystickVelocityX)*response;
+  joystickVelocityY += (targetY-joystickVelocityY)*response;
+
+  if(Math.abs(joystickVelocityX)<.01)joystickVelocityX=0;
+  if(Math.abs(joystickVelocityY)<.01)joystickVelocityY=0;
+
+  if(joystickVelocityX || joystickVelocityY){
+    const f=forwardVector();
+    const right=new THREE.Vector3(-f.z,0,f.x);
+    const dir=new THREE.Vector3()
+      .addScaledVector(f,-joystickVelocityY)
+      .addScaledVector(right,joystickVelocityX);
+
+    if(dir.lengthSq()>0)dir.normalize();
+
+    const speed=Math.min(2.8,Math.hypot(joystickVelocityX,joystickVelocityY));
+    player.position.addScaledVector(dir,speed*dt);
+    player.position.x=THREE.MathUtils.clamp(player.position.x,-6.1,6.1);
+    player.position.z=THREE.MathUtils.clamp(player.position.z,-4.0,7.0);
+    player.rotation.y=playerYaw;
+  }
+}
+
+addEventListener('pointerdown',e=>{
+  if(!player.visible)return;
+  dragging=true;lastX=e.clientX;lastY=e.clientY;
+});
+addEventListener('pointerup',()=>dragging=false);
+addEventListener('pointermove',e=>{
+  if(!dragging||!player.visible)return;
+  const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;
+  playerYaw-=dx*.005;
+  camPitch=THREE.MathUtils.clamp(camPitch-dy*.004,-.18,.72);
+  player.rotation.y=playerYaw;
+});
+addEventListener('wheel',e=>{
+  if(!player.visible)return;
+  camDistance=THREE.MathUtils.clamp(camDistance+e.deltaY*.006,2.1,7.5);
+},{passive:true});
+
+function focusMoviePlayer(){
+  try { movieFrame.focus(); } catch(e) {}
+}
+
+function startMovieAutoplay(){
+  try{
+    movieFrame.contentWindow?.postMessage({
+      type:'play',
+      action:'play',
+      autoplay:true
+    },'*');
+  }catch(err){
+    console.debug('Embedded player autoplay request:',err);
+  }
+}
+
+sitNow.onclick=()=>{
+  if(!selectedSeat)return;
+  applySeatChange(selectedSeat);
+  startMovieAutoplay();
+};
+enter.onclick=()=>{
+  if(!selectedSeat)return;
+  seatTransition=null;
+  seatPanel.dataset.mode='';
+  enter.classList.remove('hidden');
+  resetBtn.textContent='Reset';
+  seatPanel.classList.add('hidden');
+  document.getElementById('mobileControls').style.display='block';
+  setSeatedMode(false);
+  mobileControlToggle.style.display='none';
+  mobileChangeSeat.style.display='none';
+  lookModeToggle.style.display='none';
+  desktopLook.style.display='none';
+  desktopControlToggle.style.display='none';
+  setMovieInteraction(true);
+  mobileSit.textContent='E';
+  mobileSit.setAttribute('aria-label','Sit down');
+  hud.style.display='block';controls.style.display='flex';hint.style.display='block';crosshair.style.display='block';
+  player.visible=true;
+  spawnPlayer(selectedSeat);
+  startMovieAutoplay();
+  focusMoviePlayer();
+};
+resetBtn.onclick=()=>{
+  if(seatPanel.dataset.mode==='change'){
+    seatPanel.dataset.mode='';
+    enter.classList.remove('hidden');
+    sitNow.classList.remove('hidden');
+    resetBtn.textContent='Reset';
+    const title=document.getElementById('seatPanelTitle'); if(title) title.textContent='Choose your seat';
+    seatPanel.classList.add('hidden');
+    return;
+  }
+  seatTransition=null;
+  seatPanel.dataset.mode='';
+  enter.classList.remove('hidden');
+  resetBtn.textContent='Reset';
+  seatPanel.classList.remove('hidden');document.getElementById('mobileControls').style.display='none';
+  mobileControlToggle.style.display='none';
+  mobileChangeSeat.style.display='none';
+  lookModeToggle.style.display='none';
+  desktopLook.style.display='none';
+  desktopControlToggle.style.display='none';
+  setMovieInteraction(true);
+  setSeatedMode(false);
+  controls.style.display='none';
+  hud.style.display='none';controls.style.display='none';hint.style.display='none';crosshair.style.display='none';interact.style.display='none';
+  player.visible=false;seated=false;selectedSeat=null;seatName.textContent='Choose your seat';seatHud.textContent='—';enter.disabled=true;sitNow.disabled=true;modeHud.textContent='Exploring';
+  sitNow.disabled=true;
+  document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
+  if(selectedMesh?.userData.ring){scene.remove(selectedMesh.userData.ring);selectedMesh=null}
+};
+resetCam.onclick=()=>{if(selectedSeat)spawnPlayer(selectedSeat)};
+changeSeat.onclick=()=>openSeatChanger();
+exit.onclick=()=>location.href='/';
+
+new Promise((resolve,reject)=>loader.load('https://cdn.3dassets.dev/assets/29696/v1/model.glb',g=>{seatTemplate=g.scene;resolve()},undefined,reject))
+.then(()=>{
+  // The physical screen bezel is built locally. The imported screen asset was
+  // removed because its decorative crossbar could occlude the movie image.
+  for(let r=0;r<6;r++)for(let c=0;c<SEATS_PER_ROW;c++)cloneSeat(r,c);
+
+  loading.classList.add('hidden');
+
+  /*
+   * Automatically choose an available seat and sit there.
+   * C4 is available in the current occupied-seat list.
+   */
+  const defaultSeat='C4';
+
+  if(seatMap.has(defaultSeat) && !occupied.has(defaultSeat)){
+    selectedSeat=defaultSeat;
+    seatName.textContent='Seat '+defaultSeat;
+    seatHud.textContent=defaultSeat;
+    highlightSeat(defaultSeat);
+
+    applySeatChange(defaultSeat);
+
+    setTimeout(()=>{
+      startMovieAutoplay();
+    },800);
+  }
+}).catch(err=>{
+  console.error(err);
+  loading.textContent='Cinema assets failed to load';
+});
+
+function render(){
+  requestAnimationFrame(render);
+  const dt=Math.min(clock.getDelta(),.05);
+  if(seatTransition){
+    updateSeatTransition(dt);
+    updateCamera();
+    interact.style.display='none';
+    mobileSit.style.display='none';
+  }else if(seated){
+    updateCamera();
+    interact.style.display='none';
+    mobileSit.style.display='block';
+  }else if(player.visible){
+    movePlayer(dt);
+    moveMobile(dt);
+    updateCamera();
+    const ns=nearestSeat();
+    interact.style.display=ns?'block':'none';
+    mobileSit.style.display=ns?'block':'none';
+  }else{
+    mobileSit.style.display='none';
+    camera.position.set(0,3.65,6.2);
+    camera.lookAt(0,SCREEN_Y,SCREEN_Z);
+  }
+  webgl.render(scene,camera);
+  css.render(cssScene,camera);
+}
+render();
+
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  webgl.setSize(innerWidth,innerHeight);css.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
