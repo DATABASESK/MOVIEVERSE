@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from 'react';
 
-const WatchSettingContext = createContext()
+const WatchSettingContext = createContext();
 
 export function WatchSettingContextProvider({ children }) {
   const [watchSetting, setWatchSetting] = useState({
@@ -10,19 +10,30 @@ export function WatchSettingContextProvider({ children }) {
     light: false,
     autoPlay: false,
     autoNext: false,
-    autoSkipIntro: false
+    autoSkipIntro: false,
+    fullscreen: false,
+
+    // 3D Theater
+    theaterOpen: false,
+    theaterSeat: null,
+    theaterEntered: false,
   });
 
   return (
     <WatchSettingContext.Provider value={{ watchSetting, setWatchSetting }}>
       <div
-        className="flex gap-3 flex-col-reverse max-h-[52rem] "
-        style={{ flexDirection: watchSetting.isExpanded && "column-reverse" }}
+        className="flex gap-3 flex-col-reverse max-h-[52rem]"
+        style={{
+          flexDirection: watchSetting.isExpanded
+            ? 'column-reverse'
+            : undefined,
+        }}
       >
         {children}
       </div>
-    </WatchSettingContext.Provider >
-  )
+    </WatchSettingContext.Provider>
+  );
 }
 
-export const useWatchSettingContext = () => useContext(WatchSettingContext)
+export const useWatchSettingContext = () =>
+  useContext(WatchSettingContext);
