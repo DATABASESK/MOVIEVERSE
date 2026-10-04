@@ -257,7 +257,7 @@ document.body.appendChild(webgl.domElement);
 const css=new CSS3DRenderer();
 css.setSize(innerWidth,innerHeight);
 css.domElement.id='css3d';
-css.domElement.style.pointerEvents='none';
+css.domElement.style.pointerEvents='auto';
 document.body.appendChild(css.domElement);
 const cssScene=new THREE.Scene();
 
@@ -613,6 +613,8 @@ function nearestSeat(){
 function setMovieInteraction(enabled){
   movieInteraction=enabled;
   movieFrame.style.pointerEvents=enabled?'auto':'none';
+  // CSS3DRenderer's root must also accept pointer events or the iframe cannot receive clicks.
+  css.domElement.style.pointerEvents=enabled?'auto':'none';
   mobileControls.classList.toggle('cameraMode', seated && !enabled);
   lookOverlay.classList.toggle('active', seated && !enabled);
   desktopLook.classList.toggle('active', seated && !enabled);
