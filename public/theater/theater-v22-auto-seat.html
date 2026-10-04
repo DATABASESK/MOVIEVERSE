@@ -538,6 +538,11 @@ function updateCamera(){
   const forward=forwardVector();
 
   if(seated){
+    // First-person seated POV: hide only the selected chair so its armrests
+    // cannot intrude into the camera view. Other cinema seats remain visible.
+    const seatedChair=seatMap.get(selectedSeat);
+    if(seatedChair) seatedChair.visible=false;
+
     // Seated 360° POV. The camera stays at the selected seat and rotates
     // around its own position from a horizontal swipe. Vertical swipe gives
     // a limited up/down look without allowing the view to flip.
@@ -563,6 +568,10 @@ function updateCamera(){
     camera.lookAt(target);
     return;
   }
+
+  // Restore the selected chair when returning to third-person exploration.
+  const seatedChair=seatMap.get(selectedSeat);
+  if(seatedChair) seatedChair.visible=true;
 
   const aimDistance=4.8;
   const aimPoint=player.position.clone()
@@ -690,7 +699,7 @@ function applySeatChange(id){
   // imported seat model can never swallow/black-out the view.
   seated=true;
   seatedYaw=0;
-  seatedPitch=0;
+  seatedPitch=getDefaultSeatedPitch(s);
   player.visible=false;
   player.position.set(s.position.x,0.18,s.position.z+0.72);
   camera.position.copy(getSeatedCameraPosition(s));
@@ -723,13 +732,25 @@ function getSeatedCameraPosition(s){
   // Each row is progressively higher and farther back. Keep the camera
   // roughly 1.15m in front of the seat's center, never inside the chair.
   const rowN=Math.min(row,5);
-  // Put the camera at natural eye height and keep it at the seat position.
+  // Put the camera at natural seated eye height and keep it at the seat position.
   // The movie is rendered as a CSS3D iframe, so it cannot depth-test against
   // WebGL chairs; keeping the camera behind the seat and lifting the screen
   // prevents the iframe from visually drawing across foreground seat backs.
   const y=1.78 + rowN*0.055;
   const zOffset=0.10;
   return new THREE.Vector3(s.position.x,y,s.position.z+zOffset);
+}
+
+function getDefaultSeatedPitch(s){
+  // The screen is much higher than the seated eye, so a 0° pitch looks
+  // underneath the screen. Aim the initial seated POV at the screen center.
+  const base=getSeatedCameraPosition(s);
+  const dz=Math.abs(SCREEN_Z-base.z);
+  return THREE.MathUtils.clamp(
+    Math.atan2(SCREEN_Y-base.y,dz),
+    -0.42,
+    0.42
+  );
 }
 
 function getSeatedLookTarget(s){
@@ -819,7 +840,7 @@ function updateSeatTransition(dt){
     highlightSeat(t.id);
     seated=true;
     seatedYaw=0;
-    seatedPitch=0;
+    seatedPitch=getDefaultSeatedPitch(t.target);
     modeHud.textContent='Sitting';
     camera.position.copy(getSeatedCameraPosition(t.target));
     camera.lookAt(getSeatedLookTarget(t.target));
@@ -880,7 +901,7 @@ function toggleSit(){
   mobileChangeSeat.style.display=seated?'block':'none';
   mobileControlToggle.textContent='⋯';
   seatedYaw=0;
-  seatedPitch=0;
+  seatedPitch=getDefaultSeatedPitch(s);
 
   if(seated){
     seatedLookHint.classList.add('show');
