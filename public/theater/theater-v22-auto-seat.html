@@ -34,7 +34,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030405;col
 .controlBtn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(7,8,10,.76);color:#eee;cursor:pointer;font-size:15px;backdrop-filter:blur(10px)}
 #hint{position:fixed;z-index:25;left:50%;bottom:24px;transform:translateX(-50%);display:none;background:rgba(7,8,10,.78);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 14px;color:#aeb3b9;font-size:11px;backdrop-filter:blur(10px)}
 #hint kbd{border:1px solid #555;border-radius:4px;padding:2px 5px;color:#eee;margin:0 2px}
-#loading{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:#030405;color:#aeb4bb;font-size:13px;letter-spacing:.12em}
+#loading{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:#030405;color:#aeb4bb;font-size:13px;letter-spacing:.12em;transition:opacity .5s ease}#loading::after{content:'CINEMA 3D';position:absolute;top:50%;margin-top:34px;font-size:11px;letter-spacing:.32em;color:#555b63}
 .hidden{display:none!important}
 #crosshair{position:fixed;z-index:24;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;transform:translate(-50%,-50%);display:none}
 #interact{position:fixed;z-index:25;left:50%;top:55%;transform:translateX(-50%);padding:9px 13px;border-radius:9px;background:rgba(8,9,11,.82);border:1px solid rgba(255,255,255,.15);font-size:11px;color:#eee;display:none}
@@ -263,10 +263,13 @@ const cssScene=new THREE.Scene();
 const loader=new GLTFLoader();
 const clock=new THREE.Clock();
 
-const SCREEN_Z=-6.9;
-const SCREEN_Y=4.05;
-const SCREEN_W=9.6;
-const SCREEN_H=SCREEN_W*9/16;
+const SCREEN_Z=-18.0;
+const SCREEN_Y=10.8;
+const SCREEN_W=30.0;
+const SCREEN_H=21.0;
+const ROOM_W=36.0;
+const ROOM_D=40.0;
+const ROOM_H=23.0;
 
 scene.add(new THREE.HemisphereLight(0xb7c3d0,0x111216,1.35));
 const roomFill=new THREE.AmbientLight(0xffffff,0.42);
@@ -274,15 +277,15 @@ scene.add(roomFill);
 const key=new THREE.DirectionalLight(0xffe7d0,1.55);
 key.position.set(0,8,4); key.castShadow=true; key.shadow.mapSize.set(2048,2048); scene.add(key);
 const screenGlow=new THREE.PointLight(0xffb35c,5.0,14);
-screenGlow.position.set(0,3,-5.8); scene.add(screenGlow);
-const warmL=new THREE.PointLight(0xff8a3d,1.8,12); warmL.position.set(-6,2,0); scene.add(warmL);
+screenGlow.position.set(0,8.0,-12.5); scene.add(screenGlow);
+const warmL=new THREE.PointLight(0xff8a3d,1.8,12); warmL.position.set(-10,4,-4); scene.add(warmL);
 const warmR=warmL.clone(); warmR.position.x=6; scene.add(warmR);
 const ceilingLightL=new THREE.PointLight(0xffd6a0,2.2,15);
-ceilingLightL.position.set(-4.8,6.5,0); scene.add(ceilingLightL);
+ceilingLightL.position.set(-8,15,0); scene.add(ceilingLightL);
 const ceilingLightR=ceilingLightL.clone();
 ceilingLightR.position.x=4.8; scene.add(ceilingLightR);
 const aisleLight=new THREE.PointLight(0xffb66b,1.6,12);
-aisleLight.position.set(0,2.5,1.8); scene.add(aisleLight);
+aisleLight.position.set(0,3.5,4.0); scene.add(aisleLight);
 
 
 function mat(c,r=.75,m=.0){return new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m})}
@@ -295,55 +298,113 @@ function cyl(rad,depth,x,y,z,c){
   o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o;
 }
 
-/* Room: deep black walls, stepped floor, acoustic ribs, amber light strips. */
-box(17,.3,18,0,0,-.2,0x08090b);
-box(17,.25,18,0,7.8,-.2,0x050607);
-box(.2,7.8,18,-8.5,3.9,-.2,0x090a0c);
-box(.2,7.8,18,8.5,3.9,-.2,0x090a0c);
-box(17,.3,.22,0,6.9,8.55,0x17191c);
-for(let r=0;r<6;r++){
-  const z=.8+r*1.2, y=.15+r*.27;
-  box(15,.3,1.22,0,y,z,0x111316,.95);
-  box(.05,.035,1.0,-6.9,y+.17,z,0xb27a32,.5);
-  box(.05,.035,1.0,6.9,y+.17,z,0xb27a32,.5);
+/* Reference cinema architecture: 36W × 40D × 23H hall, stepped floor, acoustic ceiling,
+   architectural trim, side practicals, stage, curtains and projector. */
+box(ROOM_W,.35,ROOM_D,0,-.18,0,0x08090b,.98);
+box(ROOM_W,.28,ROOM_D,0,ROOM_H+.02,0,0x050607,1);
+box(.28,ROOM_H,ROOM_D,-ROOM_W/2-.02,ROOM_H/2,0,0x090a0c,.96);
+box(.28,ROOM_H,ROOM_D, ROOM_W/2+.02,ROOM_H/2,0,0x090a0c,.96);
+
+/* Rear wall and ceiling architectural crown. */
+box(ROOM_W,.32,.25,0,ROOM_H-.18,-ROOM_D/2+.12,0x111214,.8);
+box(ROOM_W,.22,.34,0,ROOM_H-.06,-ROOM_D/2+.30,0x8b6914,.42,.35);
+box(ROOM_W,.22,.34,0,ROOM_H-.06, ROOM_D/2-.30,0x8b6914,.42,.35);
+box(.34,.22,ROOM_D,-ROOM_W/2+.30,ROOM_H-.06,0,0x8b6914,.42,.35);
+box(.34,.22,ROOM_D, ROOM_W/2-.30,ROOM_H-.06,0,0x8b6914,.42,.35);
+
+/* Acoustic ceiling panels exactly follow the reference's dense overhead grid. */
+const acousticMat=mat(0x060408,1.0);
+const acousticGeo=new THREE.BoxGeometry(2.0,.12,2.0);
+const acoustic=new THREE.InstancedMesh(acousticGeo,acousticMat,500);
+let acousticIndex=0; const acousticDummy=new THREE.Object3D();
+for(let x=-ROOM_W/2+2;x<ROOM_W/2-1;x+=2.4){
+  for(let z=-ROOM_D/2+2;z<ROOM_D/2-1;z+=2.4){
+    acousticDummy.position.set(x,ROOM_H-.10,z);
+    acousticDummy.updateMatrix(); acoustic.setMatrixAt(acousticIndex++,acousticDummy.matrix);
+  }
 }
-box(1.1,.08,7.7,0,.36,4.0,0x191b1f);
+acoustic.count=acousticIndex; acoustic.instanceMatrix.needsUpdate=true; scene.add(acoustic);
+
+/* Raised stepped floor, with warm aisle accents. */
+for(let r=0;r<8;r++){
+  const z=-1.0+r*2.35;
+  const y=.18+r*.34;
+  box(30,.34,2.12,0,y,z,0x101214,.96);
+  box(.07,.045,1.72,-14.2,y+.20,z,0xb27a32,.48);
+  box(.07,.045,1.72, 14.2,y+.20,z,0xb27a32,.48);
+}
+box(1.4,.10,34,0,.46,3.2,0x191b1f,.96);
+
+/* Side wall ribs, gold practical strips and recessed light pools. */
 for(const side of [-1,1]){
-  for(let z=-5.7;z<7;z+=2.25){
-    box(.18,4.8,.18,side*8.12,2.45,z,0x292b2e);
-    box(.07,2.05,.08,side*7.95,2.35,z,0xffbd64,.4);
-    const practical=new THREE.PointLight(0xffc36b,1.25,4.2);
-    practical.position.set(side*7.55,2.55,z); scene.add(practical);
-    box(.11,1.2,.12,side*7.9,3.9,z,0x332d27);
+  for(let z=-17;z<18;z+=2.6){
+    box(.20,8.0,.22,side*17.72,4.0,z,0x292b2e,.72);
+    box(.075,2.15,.09,side*17.42,3.65,z,0xffbd64,.42);
+    const practical=new THREE.PointLight(0xffc36b,1.15,5.5);
+    practical.position.set(side*16.9,3.7,z); scene.add(practical);
   }
 }
-/* Front stage */
-box(12.7,.45,1.15,0,.23,-6.55,0x17191b);
-box(11.9,.18,.45,0,.52,-6.05,0x0d0f11);
 
-/* Planters and simple plants, like the reference. */
-function planter(x,z){
-  const p=cyl(.28,.55,x,.3,z,0x14171a);
-  for(let i=0;i<7;i++){
-    const stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.7,8),mat(0x1b321e,.9));
-    stem.position.set(x+(Math.random()-.5)*.2,.72,z+(Math.random()-.5)*.2);
-    stem.rotation.z=(Math.random()-.5)*.35;scene.add(stem);
-    const leaf=new THREE.Mesh(new THREE.SphereGeometry(.12,.12,8),mat(0x26442a,.9));
-    leaf.scale.y=1.8;leaf.position.copy(stem.position).add(new THREE.Vector3((Math.random()-.5)*.18,.25,(Math.random()-.5)*.18));scene.add(leaf);
+/* Front stage and architectural platform. */
+box(31.0,.55,2.25,0,.28,-17.05,0x17191b,.88);
+box(30.2,.18,.70,0,.65,-16.05,0x0d0f11,.88);
+box(29.6,.12,.20,0,.79,-15.70,0x8b6914,.42,.45);
+
+/* Curtains: folded red theatre fabric with gold rail. */
+function makeCurtain(xPos){
+  const geo=new THREE.PlaneGeometry(15.5,ROOM_H,48,1);
+  const pos=geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i);
+    pos.setZ(i,Math.sin(x*.52)*.42+Math.sin(x*1.35)*.14);
   }
+  pos.needsUpdate=true; geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x240507,roughness:.98,side:THREE.DoubleSide}));
+  m.position.set(xPos,ROOM_H/2,SCREEN_Z-.25); m.castShadow=true; scene.add(m); return m;
 }
-planter(-5.9,-5.65); planter(5.9,-5.65);
+makeCurtain(-SCREEN_W/2-7.7);
+makeCurtain( SCREEN_W/2+7.7);
+const curtainRail=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,ROOM_W+6,16),mat(0x8b6914,.4,.5));
+curtainRail.rotation.z=Math.PI/2; curtainRail.position.set(0,ROOM_H-.22,SCREEN_Z-.18); scene.add(curtainRail);
 
-/* Screen bezel */
-box(SCREEN_W+.60,SCREEN_H+.60,.18,0,SCREEN_Y,SCREEN_Z,0x16181b,.65,.1);
-box(SCREEN_W+.20,SCREEN_H+.20,.08,0,SCREEN_Y,SCREEN_Z+.13,0x050607,.4);
-const screenSurface=box(SCREEN_W,SCREEN_H,.035,0,SCREEN_Y,SCREEN_Z+.19,0x030303,.45);
+/* Screen: 30 × 21 curved reference geometry. */
+const curvedScreenGeo=new THREE.PlaneGeometry(SCREEN_W,SCREEN_H,48,1);
+const curvedPos=curvedScreenGeo.attributes.position;
+for(let i=0;i<curvedPos.count;i++){
+  const nx=curvedPos.getX(i)/(SCREEN_W/2);
+  curvedPos.setZ(i,-1.8*nx*nx);
+}
+curvedPos.needsUpdate=true; curvedScreenGeo.computeVertexNormals();
+const screenShell=new THREE.Mesh(curvedScreenGeo,new THREE.MeshStandardMaterial({color:0x030303,roughness:.72,metalness:.08,side:THREE.DoubleSide}));
+screenShell.position.set(0,SCREEN_Y,SCREEN_Z); screenShell.castShadow=false; scene.add(screenShell);
 
-/* Movie iframe sits exactly on the screen surface. */
+/* Curved bezel rails. */
+const bezelMat=mat(0x030203,.95,.08);
+function curvedRail(yOffset){
+  const g=new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-SCREEN_W/2,yOffset,SCREEN_Z+0.02),
+    new THREE.Vector3(-SCREEN_W*.25,yOffset,SCREEN_Z-1.0),
+    new THREE.Vector3(0,yOffset,SCREEN_Z-1.8),
+    new THREE.Vector3(SCREEN_W*.25,yOffset,SCREEN_Z-1.0),
+    new THREE.Vector3(SCREEN_W/2,yOffset,SCREEN_Z+0.02)
+  ]),32,.10,8,false);
+  scene.add(new THREE.Mesh(g,bezelMat));
+}
+curvedRail(SCREEN_Y+SCREEN_H/2+.14); curvedRail(SCREEN_Y-SCREEN_H/2-.14);
+
+/* Movie iframe remains the real cross-origin player. It is centered inside the
+   same 30 × 21 physical screen and masked to 16:9, preserving the reference
+   theatre proportions without pretending an external iframe can become a
+   Three.js VideoTexture. */
+const MOVIE_W=30;
+const MOVIE_H=16.875;
 const movieObject=new CSS3DObject(movieFrame);
-movieObject.position.set(0,SCREEN_Y,SCREEN_Z+.235);
-movieObject.scale.set(SCREEN_W/1200,SCREEN_W/1200,SCREEN_W/1200);
+movieObject.position.set(0,SCREEN_Y,SCREEN_Z-.16);
+movieObject.scale.set(MOVIE_W/1200,MOVIE_W/1200,MOVIE_W/1200);
 cssScene.add(movieObject);
+
+/* Black top/bottom masking on the physical screen. */
+box(MOVIE_W,.01,.03,0,SCREEN_Y+MOVIE_H/2,SCREEN_Z-.02,0x000000,.95);
 
 /* Real CC0 cinema seat model. The asset is documented as +Y up / +Z forward,
    so a PI yaw makes every chair face the screen at negative Z. */
@@ -359,9 +420,9 @@ function cloneSeat(r,c){
   const s=seatTemplate.clone(true);
   s.rotation.y=Math.PI;
   s.scale.setScalar(1.02);
-  const x=(c-(SEATS_PER_ROW-1)/2)*1.08;
-  const z=1.10+r*1.38;
-  const y=.43+r*.27;
+  const x=(c-(SEATS_PER_ROW-1)/2)*1.65;
+  const z=-1.25+r*2.35;
+  const y=.78+r*.34;
   s.position.set(x,y,z);
   s.userData.seatId=id;s.userData.row=r;s.userData.col=c;s.userData.baseY=y;
   s.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
@@ -377,6 +438,22 @@ function addPicker(){
       b.className='seat';b.textContent=c;b.dataset.seatId=id;
       if(occupied.has(id)){b.classList.add('occupied');b.disabled=true}
       b.onclick=()=>{
+        if(b.disabled || seatTransition)return;
+
+        // While seated, selecting another available seat is the action itself.
+        // Do not require Enter/Sit Now a second time.
+        if(seated && seatPanel.dataset.mode==='change'){
+          if(id===selectedSeat){
+            seatPanel.classList.add('hidden');
+            seatPanel.dataset.mode='';
+            return;
+          }
+          document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
+          b.classList.add('selected');
+          startSeatTransition(id);
+          return;
+        }
+
         document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
         b.classList.add('selected');
         selectedSeat=id;
@@ -385,12 +462,6 @@ function addPicker(){
         enter.disabled=false;
         sitNow.disabled=false;
         highlightSeat(id);
-
-        // While seated, changing the seat is immediate: the camera, viewing
-        // distance and seat position all update as soon as a new seat is picked.
-        if(seated && seatPanel.dataset.mode==='change'){
-          startSeatTransition(id);
-        }
       };
       row.appendChild(b);
     }
@@ -515,8 +586,8 @@ function movePlayer(dt){
   const dir=new THREE.Vector3().addScaledVector(f,-z).addScaledVector(right,x).normalize();
   const speed=2.9;
   player.position.addScaledVector(dir,speed*dt);
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-6.7,6.7);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-4.8,7.2);
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-14.5,16.5);
   player.rotation.y=playerYaw;
 }
 function nearestSeat(){
@@ -670,30 +741,37 @@ function getSeatedLookTarget(s){
 }
 
 function startSeatTransition(id){
+  if(seatTransition || !seated || seatPanel.dataset.mode!=='change')return;
   const target=seatMap.get(id);
   if(!target || occupied.has(id))return;
+
+  const currentSeat=seatMap.get(selectedSeat);
+  const startX=currentSeat ? currentSeat.position.x : player.position.x;
+  const startZ=currentSeat ? currentSeat.position.z+0.72 : player.position.z;
+  const approachZ=target.position.z+0.72;
+  const aisleX=0;
 
   selectedSeat=id;
   seatName.textContent='Seat '+id;
   seatHud.textContent=id;
+  modeHud.textContent='Walking to '+id;
   highlightSeat(id);
 
-  // Leave the seated POV and let the avatar visibly walk to the new seat.
-  // The route uses the center aisle first, then approaches the target from behind.
-  const currentX=player.position.x;
-  const currentZ=player.position.z;
-  const aisleX=0;
-  const approachZ=target.position.z+0.72;
-  const waypoints=[
-    new THREE.Vector3(aisleX,0,currentZ),
-    new THREE.Vector3(aisleX,0,approachZ),
-    new THREE.Vector3(target.position.x,0,approachZ)
-  ];
-
+  player.position.set(startX,0,startZ);
   player.visible=true;
+  playerYaw=0;
   seated=false;
   setSeatedMode(false);
   setMovieInteraction(true);
+
+  // Hide the picker immediately; the avatar now owns the transition.
+  seatPanel.classList.add('hidden');
+  seatPanel.classList.add('transitioning');
+  seatPanel.dataset.mode='';
+  enter.classList.remove('hidden');
+  sitNow.classList.remove('hidden');
+  resetBtn.textContent='Reset';
+
   mobileSit.style.display='none';
   interact.style.display='none';
   lookModeToggle.style.display='none';
@@ -703,15 +781,16 @@ function startSeatTransition(id){
   mobileControlToggle.style.display='none';
   desktopControlToggle.style.display='none';
   seatedLookHint.classList.remove('show');
-  seatPanel.classList.add('hidden');
-  seatPanel.classList.remove('transitioning');
-  seatPanel.dataset.mode='';
 
   seatTransition={
     id,
-    waypoints,
+    waypoints:[
+      new THREE.Vector3(aisleX,0,startZ),
+      new THREE.Vector3(aisleX,0,approachZ),
+      new THREE.Vector3(target.position.x,0,approachZ)
+    ],
     index:0,
-    speed:3.1,
+    speed:3.4,
     target,
     finalZ:approachZ
   };
@@ -742,6 +821,8 @@ function updateSeatTransition(dt){
     seatedYaw=0;
     seatedPitch=0;
     modeHud.textContent='Sitting';
+    camera.position.copy(getSeatedCameraPosition(t.target));
+    camera.lookAt(getSeatedLookTarget(t.target));
     mobileSit.textContent='↑';
     mobileSit.setAttribute('aria-label','Stand up');
     setSeatedMode(true);
@@ -1111,7 +1192,7 @@ new Promise((resolve,reject)=>loader.load('https://cdn.3dassets.dev/assets/29696
   // removed because its decorative crossbar could occlude the movie image.
   for(let r=0;r<6;r++)for(let c=0;c<SEATS_PER_ROW;c++)cloneSeat(r,c);
 
-  loading.classList.add('hidden');
+  loading.style.opacity='0'; setTimeout(()=>loading.classList.add('hidden'),520);
 
   // Keep the seat chooser open when the theater starts.
   // The visitor must choose an available seat before entering the cinema.
