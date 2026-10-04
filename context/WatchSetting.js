@@ -13,10 +13,6 @@ export function WatchSettingContextProvider({ children }) {
     autoSkipIntro: false,
     fullscreen: false,
 
-    // 3D Theater
-    theaterOpen: false,
-    theaterSeat: null,
-    theaterEntered: false,
   });
 
   return (
