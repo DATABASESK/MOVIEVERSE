@@ -4,7 +4,6 @@ import { useWatchContext } from "@/context/Watch";
 import { useWatchSettingContext } from "@/context/WatchSetting";
 
 import Option from "./Option";
-import "./theater.css";
 import Server from "./Server";
 import TheaterExperience from "./TheaterExperience";
 
