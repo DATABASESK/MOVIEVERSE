@@ -6,8 +6,6 @@ import { FaChair, FaDoorOpen, FaPlay, FaRandom } from "react-icons/fa";
 import { useWatchContext } from "@/context/Watch";
 import { useWatchSettingContext } from "@/context/WatchSetting";
 
-import TheaterSeatPicker from "./TheaterSeatPicker";
-
 const TheaterExperience = () => {
   const {
     watchInfo,
