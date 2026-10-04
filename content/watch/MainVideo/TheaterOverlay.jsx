@@ -1,79 +1,61 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useWatchContext } from "@/context/Watch";
 import { useWatchSettingContext } from "@/context/WatchSetting";
 
 const TheaterOverlay = () => {
-  const { watchInfo, MovieInfo } = useWatchContext();
-  const { watchSetting, setWatchSetting } =
-    useWatchSettingContext();
+  const {
+    watchInfo,
+    MovieInfo,
+  } = useWatchContext();
 
-  const theaterRef = useRef(null);
+  const {
+    watchSetting,
+    setWatchSetting,
+  } = useWatchSettingContext();
 
-  const movieUrl = useMemo(
-    () => watchInfo?.url || "",
-    [watchInfo?.url]
-  );
+  /*
+   * This is the URL of the server currently selected
+   * in your normal movie player.
+   */
+  const movieUrl = useMemo(() => {
+    return watchInfo?.url || "";
+  }, [watchInfo?.url]);
 
+  /*
+   * Send the current movie/server URL to the theater.
+   */
   const theaterUrl = useMemo(() => {
-    const base =
+    const baseUrl =
       "/theater/theater-v22-auto-seat.html";
 
-    if (!movieUrl) return base;
+    if (!movieUrl) {
+      return baseUrl;
+    }
 
-    return `${base}?movieUrl=${encodeURIComponent(
+    return `${baseUrl}?movieUrl=${encodeURIComponent(
       movieUrl
     )}`;
   }, [movieUrl]);
 
   /*
-   * Stop any HTML5 video/audio that belongs to
-   * our own page.
+   * Prevent the page behind the theater from scrolling.
    */
   useEffect(() => {
-    if (!watchSetting?.theater) return;
+    if (!watchSetting?.theater) {
+      return;
+    }
 
-    document
-      .querySelectorAll("video, audio")
-      .forEach((media) => {
-        try {
-          media.pause();
-        } catch {}
-      });
+    const previousOverflow =
+      document.body.style.overflow;
 
-    const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = oldOverflow;
+      document.body.style.overflow =
+        previousOverflow;
     };
-  }, [watchSetting?.theater]);
-
-  /*
-   * Ask the original movie iframe to pause.
-   *
-   * This is supported by the theater/player bridge
-   * when the provider accepts postMessage commands.
-   */
-  useEffect(() => {
-    if (!watchSetting?.theater) return;
-
-    const iframe = document.querySelector(
-      'iframe[title="Movie player"]'
-    );
-
-    if (!iframe?.contentWindow) return;
-
-    try {
-      iframe.contentWindow.postMessage(
-        {
-          type: "pause",
-          action: "pause",
-        },
-        "*"
-      );
-    } catch {}
   }, [watchSetting?.theater]);
 
   if (!watchSetting?.theater) {
@@ -88,20 +70,6 @@ const TheaterOverlay = () => {
     "Movie";
 
   const closeTheater = () => {
-    /*
-     * Tell the theater movie to pause before
-     * removing the theater iframe.
-     */
-    try {
-      theaterRef.current?.contentWindow?.postMessage(
-        {
-          type: "pause",
-          action: "pause",
-        },
-        "*"
-      );
-    } catch {}
-
     setWatchSetting((prev) => ({
       ...prev,
       theater: false,
@@ -112,7 +80,6 @@ const TheaterOverlay = () => {
     <div className="fixed inset-0 z-[9999] bg-black">
 
       <iframe
-        ref={theaterRef}
         src={theaterUrl}
         title={`${movieTitle} 3D Theater`}
         className="w-full h-full border-0"
@@ -125,8 +92,8 @@ const TheaterOverlay = () => {
 
       <button
         type="button"
-        onClick={closeTheater}
         aria-label="Exit 3D Theater"
+        onClick={closeTheater}
         className="
           absolute
           top-3
@@ -147,6 +114,7 @@ const TheaterOverlay = () => {
       >
         ✕
       </button>
+
     </div>
   );
 };
