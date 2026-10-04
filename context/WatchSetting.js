@@ -12,11 +12,16 @@ export function WatchSettingContextProvider({ children }) {
     autoNext: false,
     autoSkipIntro: false,
     fullscreen: false,
-
+    theater: false,
   });
 
   return (
-    <WatchSettingContext.Provider value={{ watchSetting, setWatchSetting }}>
+    <WatchSettingContext.Provider
+      value={{
+        watchSetting,
+        setWatchSetting,
+      }}
+    >
       <div
         className="flex gap-3 flex-col-reverse max-h-[52rem]"
         style={{
