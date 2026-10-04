@@ -8,8 +8,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030405;color:#f4f4f4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 #webgl,#css3d{position:fixed;inset:0}
-#webgl{z-index:1}
-#css3d{z-index:2;pointer-events:none}
+#webgl{z-index:2}
+#css3d{z-index:1;pointer-events:none}
 #movieFrame{width:1200px;height:675px;border:0;background:#000;display:block;box-shadow:0 0 80px rgba(0,0,0,.9)}
 #top{display:none!important;position:fixed;z-index:20;left:0;right:0;top:0;height:70px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(5,6,8,.9);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:space-between;padding:0 42px}
 .brand{font-size:17px;font-weight:800;letter-spacing:.11em;display:flex;align-items:center;gap:10px}
@@ -238,11 +238,12 @@ const seatedTouch={active:false,id:null,x:0,y:0};
 
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x030405);
+scene.background=null;
 scene.fog=new THREE.FogExp2(0x030405,.018);
 
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.05,100);
-const webgl=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+const webgl=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+webgl.setClearColor(0x000000,0);
 webgl.setPixelRatio(Math.min(devicePixelRatio,1.7));
 webgl.setSize(innerWidth,innerHeight);
 webgl.shadowMap.enabled=true;
@@ -375,8 +376,8 @@ for(let i=0;i<curvedPos.count;i++){
   curvedPos.setZ(i,-1.8*nx*nx);
 }
 curvedPos.needsUpdate=true; curvedScreenGeo.computeVertexNormals();
-const screenShell=new THREE.Mesh(curvedScreenGeo,new THREE.MeshStandardMaterial({color:0x030303,roughness:.72,metalness:.08,side:THREE.DoubleSide}));
-screenShell.position.set(0,SCREEN_Y,SCREEN_Z); screenShell.castShadow=false; scene.add(screenShell);
+// The movie is rendered by CSS3D behind the WebGL scene so chairs and other geometry can occlude it naturally.
+// Do not add an opaque WebGL screen surface here, or it would cover the movie.
 
 /* Curved bezel rails. */
 const bezelMat=mat(0x030203,.95,.08);
@@ -404,7 +405,7 @@ movieObject.scale.set(MOVIE_W/1200,MOVIE_W/1200,MOVIE_W/1200);
 cssScene.add(movieObject);
 
 /* Black top/bottom masking on the physical screen. */
-box(MOVIE_W,.01,.03,0,SCREEN_Y+MOVIE_H/2,SCREEN_Z-.02,0x000000,.95);
+// No opaque WebGL movie mask: the CSS3D iframe must remain visible through the transparent WebGL canvas.
 
 /* Real CC0 cinema seat model. The asset is documented as +Y up / +Z forward,
    so a PI yaw makes every chair face the screen at negative Z. */
@@ -736,8 +737,10 @@ function getSeatedCameraPosition(s){
   // The movie is rendered as a CSS3D iframe, so it cannot depth-test against
   // WebGL chairs; keeping the camera behind the seat and lifting the screen
   // prevents the iframe from visually drawing across foreground seat backs.
-  const y=1.78 + rowN*0.055;
-  const zOffset=0.10;
+  const y=2.12 + rowN*0.055;
+  // Move the seated POV slightly back from the chair so the screen is viewed
+  // more naturally and the foreground seating does not dominate the frame.
+  const zOffset=0.55;
   return new THREE.Vector3(s.position.x,y,s.position.z+zOffset);
 }
 
@@ -758,7 +761,7 @@ function getSeatedLookTarget(s){
   const rowN=Math.min(row,5);
   // Aim at the center of the movie screen, with a tiny row-based elevation
   // so rear rows naturally look slightly downward.
-  return new THREE.Vector3(0,SCREEN_Y+rowN*0.01,SCREEN_Z);
+  return new THREE.Vector3(0,SCREEN_Y-0.35+rowN*0.01,SCREEN_Z);
 }
 
 function startSeatTransition(id){
